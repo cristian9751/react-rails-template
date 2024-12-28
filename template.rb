@@ -359,10 +359,10 @@ after_bundle do
     import { registerComponent } from "turbo-mount/react";
 
     // Example React component
-    import { Hello } from "@/components/Hello";
+    import { App} from "@/components/App";
 
     const turboMount = new TurboMount();
-    registerComponent(turboMount, "Hello", Hello);
+    registerComponent(turboMount, "App", App);
   JS
 
   # --------------------------------------------------------------------------
