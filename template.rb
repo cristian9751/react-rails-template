@@ -50,7 +50,9 @@ after_bundle do
       @types/react @types/react-dom \
       tailwind autoprefixer tailwindcss-animate \
       @tailwindcss/typography @tailwindcss/container-queries @tailwindcss/forms \
-      turbo-mount stimulus-vite-helpers clsx tailwind-merge \
+      turbo-mount stimulus-vite-helpers clsx tailwind-merge \ 
+      @rails/actioncable @rails/activestorage  \
+      @types/rails__actioncable @types/rails__activestorage \
       @hotwired/turbo-rails vite-plugin-ruby postcss shadcn@latest
   CMD
 
