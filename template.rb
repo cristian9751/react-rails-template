@@ -369,26 +369,97 @@ after_bundle do
   # 2.5: Example React component + Home controller
   # --------------------------------------------------------------------------
   run "mkdir -p app/javascript/components"
-  create_file "app/javascript/components/Hello.tsx", <<~TSX
-    import React from 'react';
+  create_file "app/javascript/components/App.tsx", <<~TSX
+    import { useState } from "react";
 
-    export function Hello(props: { name?: string }) {
+    export function App() {
+      const [count, setCount] = useState(0);
+
       return (
-        <div className="p-4 bg-green-50 border rounded">
-          <h1 className="text-xl font-bold">Hello {props.name || 'Friend'}!</h1>
-          <p>This is a turbo-mounted React component.</p>
+        <div className="flex bg-[#242424] gap-12 text-white h-screen flex-col justify-center items-center mx-auto w-screen">
+          <div className="flex text-3xl">
+            <a href="https://guides.rubyonrails.org/index.html" target="_blank">
+              <img
+                src="/images/rails.svg"
+                className="logo rails"
+                alt="Rails logo"
+              />
+            </a>
+            <a href="https://react.dev" target="_blank">
+              <img
+                src="/images/react.svg"
+                className="logo react"
+                alt="React logo"
+              />
+            </a>
+            <a href="https://vite.dev" target="_blank">
+              <img src="/images/vite.svg" className="logo" alt="Vite logo" />
+            </a>
+          </div>
+          <h1 className="text-4xl font-bold">
+            <span className="text-[#CC0000]">Rails </span> 
+            + <span className="text-[#61dafb]">React </span>
+            + <span className="text-[#646cff]">Vite</span> 
+          </h1>
+          <div className="card flex flex-col items-center">
+            <button className="mb-4 font-semibold border border-transparent hover:border-[#646cff] cursor-pointer  bg-[#1a1a1a] p-1 rounded-lg p-x-8" onClick={() => setCount((count) => count + 1)}>
+              count is {count}
+            </button>
+            <p>
+              Edit <code>app/javascript/components/App.tsx</code> and save to test
+              HMR
+            </p>
+          </div>
+          <p className="text-[#888]">
+            Click on the Rails, Vite and React logos to learn more
+          </p>
         </div>
       );
     }
   TSX
 
-  generate :controller, "home", "index", "--skip-routes", "--no-helper", "--no-assets"
-  route "root to: 'home#index'"
+  run "mkdir -p public/images"
+  run <<~CMD
+    curl -o public/images/react.svg https://raw.githubusercontent.com/lsproule/react-rails-template/main/images/react.svg
+    curl -o public/images/ruby.svg  https://raw.githubusercontent.com/lsproule/react-rails-template/main/images/ruby.svg
+    curl -o public/images/vite.svg  https://raw.githubusercontent.com/lsproule/react-rails-template/main/images/vite.svg
+  CMD
 
-  remove_file "app/views/home/index.html.erb", force: true
-  create_file "app/views/home/index.html.erb", <<~ERB
-    <h2>Welcome to the Home#index page!</h2>
-    <%= turbo_mount('Hello', props: { name: 'Rails Developer' }) %>
+  generate :controller, "route", "index", "--skip-routes", "--no-helper", "--no-assets"
+  route "root to: 'route#index'"
+
+  remove_file "app/views/route/index.html.erb", force: true
+  create_file "app/views/route/index.html.erb", <<~ERB
+    <style>
+    .logo {
+      height: 6em;
+      padding: 1.5em;
+      will-change: filter;
+      transition: filter 300ms;
+    }
+    .logo:hover {
+      filter: drop-shadow(0 0 2em #646cffaa);
+    }
+    .logo.react:hover {
+      filter: drop-shadow(0 0 2em #61dafbaa);
+    }
+    .logo.rails:hover {
+      filter: drop-shadow(0 0 2em #CC0000);
+    }
+
+    @keyframes logo-spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    a .logo.react {
+      animation: logo-spin infinite 20s linear;
+    }
+    </style>
+    <%= turbo_mount('App') %>
   ERB
 
   # --------------------------------------------------------------------------
