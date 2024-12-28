@@ -420,9 +420,9 @@ after_bundle do
 
   run "mkdir -p public/images"
   run <<~CMD
-    curl -o public/images/react.svg https://raw.githubusercontent.com/lsproule/react-rails-template/main/images/react.svg
-    curl -o public/images/ruby.svg  https://raw.githubusercontent.com/lsproule/react-rails-template/main/images/ruby.svg
-    curl -o public/images/vite.svg  https://raw.githubusercontent.com/lsproule/react-rails-template/main/images/vite.svg
+    curl -o public/images/rails.svg https://raw.githubusercontent.com/lsproule/react-rails-template/refs/heads/main/images/rails.svg
+    curl -o public/images/vite.svg https://raw.githubusercontent.com/lsproule/react-rails-template/refs/heads/main/images/vite.svg
+    curl -o public/images/react.svg https://raw.githubusercontent.com/lsproule/react-rails-template/refs/heads/main/images/react.svg
   CMD
 
   generate :controller, "route", "index", "--skip-routes", "--no-helper", "--no-assets"
