@@ -53,7 +53,6 @@ after_bundle do
       turbo-mount stimulus-vite-helpers clsx tailwind-merge \
       @hotwired/turbo-rails vite-plugin-ruby postcss shadcn@latest \
       @rails/actioncable @rails/activestorage
-
   CMD
 
   # Initialize Tailwind configs
