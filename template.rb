@@ -360,7 +360,7 @@ after_bundle do
     import { registerComponent } from "turbo-mount/react";
 
     // Example React component
-    import { App} from "@/components/App";
+    import { App } from "@/components/App";
 
     const turboMount = new TurboMount();
     registerComponent(turboMount, "App", App);
@@ -481,6 +481,102 @@ after_bundle do
   # 2.7: shadcn initialization
   # --------------------------------------------------------------------------
   run "npx shadcn@latest init"
+
+  # --------------------------------------------------------------------------
+  # 2.7.1: Create the UI Generators
+  # --------------------------------------------------------------------------
+  say "=== Creating custom UI generators ===", :green
+
+  # Make sure directories exist
+  run "mkdir -p lib/generators/ui/component/templates"
+  run "mkdir -p lib/generators/ui/register"
+
+  # 2.7.1.1: The `ui:component` generator
+  create_file "lib/generators/ui/component/component_generator.rb", <<~RUBY
+    # lib/generators/ui/component/component_generator.rb
+
+    module Ui
+      class ComponentGenerator < Rails::Generators::NamedBase
+        source_root File.expand_path("templates", __dir__)
+        desc "Generates a new React component (TSX) and registers it in turbo-mount.js"
+
+        def create_component_file
+          # Create a new TSX file in app/javascript/components
+          template "component.tsx.erb", "app/javascript/components/\#{class_name}.tsx"
+        end
+
+        def add_import_to_turbo_mount
+          # Inject an import statement into turbo-mount.js after the registerComponent import
+          inject_into_file(
+            "app/javascript/entrypoints/turbo-mount.js",
+            after: 'import { registerComponent } from "turbo-mount/react";'
+          ) do
+            "\\nimport { \#{class_name} } from \\"@/components/\#{class_name}\\";"
+          end
+        end
+
+        def register_component_in_turbo_mount
+          # Append a registerComponent call at the bottom of turbo-mount.js
+          append_to_file "app/javascript/entrypoints/turbo-mount.js", <<~JS
+
+            registerComponent(turboMount, "\#{class_name}", \#{class_name});
+          JS
+        end
+      end
+    end
+  RUBY
+
+  # Template for the TSX file
+  create_file "lib/generators/ui/component/templates/component.tsx.erb", <<~TSX
+    type Props = {};
+
+    export function <%= class_name %>({}: Props) {
+      return (
+        <div>
+          <h2>New <%= class_name %> component</h2>
+        </div>
+      );
+    }
+  TSX
+
+  # 2.7.1.2: The `ui:register_component` generator
+  create_file "lib/generators/ui/register/register_generator.rb", <<~RUBY
+    # lib/generators/ui/register_component/register_generator.rb
+
+    module Ui
+      class RegisterGenerator < Rails::Generators::NamedBase
+        source_root File.expand_path("templates", __dir__)
+        desc "Takes an existing TSX component and auto-registers it in turbo-mount.js"
+
+        def ensure_component_exists
+          unless File.exist?("app/javascript/components/#{class_name}.tsx")
+            say "ERROR: app/javascript/components/#{class_name}.tsx not found!", :red
+            exit(1) # or raise an exception
+          end
+        end
+
+        def add_import_to_turbo_mount
+          ensure_component_exists
+
+          # Step 1: Inject an import line under the registerComponent import line
+          inject_into_file(
+            "app/javascript/entrypoints/turbo-mount.js",
+            after: 'import { registerComponent } from "turbo-mount/react";'
+          ) do
+            "\\nimport { \#{class_name} } from \\"@/components/\#{class_name}\\";"
+          end
+        end
+
+        def register_component_in_turbo_mount
+          # Step 2: Append the registerComponent call at the bottom of turbo-mount.js
+          append_to_file "app/javascript/entrypoints/turbo-mount.js", <<~JS
+
+            registerComponent(turboMount, "\#{class_name}", \#{class_name});
+          JS
+        end
+      end
+    end
+  RUBY
 
   # --------------------------------------------------------------------------
   # 2.8: Done!
