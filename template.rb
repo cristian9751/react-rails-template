@@ -541,7 +541,7 @@ after_bundle do
 
   # 2.7.1.2: The `ui:register_component` generator
   create_file "lib/generators/ui/register/register_generator.rb", <<~RUBY
-    # lib/generators/ui/register_component/register_generator.rb
+    # lib/generators/ui/register/register_generator.rb
 
     module Ui
       class RegisterGenerator < Rails::Generators::NamedBase
@@ -549,15 +549,13 @@ after_bundle do
         desc "Takes an existing TSX component and auto-registers it in turbo-mount.js"
 
         def ensure_component_exists
-          unless File.exist?("app/javascript/components/#{class_name}.tsx")
-            say "ERROR: app/javascript/components/#{class_name}.tsx not found!", :red
+          unless File.exist?("app/javascript/components/\#{class_name}.tsx")
+            say "ERROR: app/javascript/components/\#{class_name}.tsx not found!", :red
             exit(1) # or raise an exception
           end
         end
 
         def add_import_to_turbo_mount
-          ensure_component_exists
-
           # Step 1: Inject an import line under the registerComponent import line
           inject_into_file(
             "app/javascript/entrypoints/turbo-mount.js",
