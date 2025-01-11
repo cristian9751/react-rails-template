@@ -1,6 +1,6 @@
 # app_template.rb
 #
-# A Rails 7 template that installs:
+# A Rails 8 template that installs:
 #   - Devise for authentication
 #   - Vite for asset bundling
 #   - React (with TypeScript support)
@@ -19,50 +19,54 @@ gem 'tailwindcss-rails', '~> 3.0'
 # 2. AFTER BUNDLE: run installers, generate configs/models, etc.
 # ------------------------------------------------------------------------------
 after_bundle do
-  say "=== Post-bundle setup starting... ===", :green
+  say '=== Post-bundle setup starting... ===', :green
 
   # --------------------------------------------------------------------------
   # 2.1: Database setup
   # --------------------------------------------------------------------------
-  rails_command "db:create"
-  rails_command "db:migrate"
+  rails_command 'db:create'
+  rails_command 'db:migrate'
 
   # --------------------------------------------------------------------------
   # 2.2: Devise (install + generate User model)
   # --------------------------------------------------------------------------
-  generate "devise:install"
-  generate "devise", "User"
-  rails_command "db:migrate"
 
+  generate 'devise:install'
+  generate 'devise', 'User'
+  rails_command 'db:migrate'
+  rails_command 'tailwindcss:install'
   # --------------------------------------------------------------------------
   # 2.3: Vite + React + Tailwind + shadcn
   # --------------------------------------------------------------------------
-  say "=== Installing Vite, React, Tailwind, shadcn, etc. ===", :green
+  say '=== Installing Vite, React, Tailwind, shadcn, etc. ===', :green
 
   # --- Vite ---
-  run "bundle exec vite install"
+  run 'bundle exec vite install'
 
   # --- Install NPM dependencies ---
   run <<~CMD
     npm install \
       react react-dom \
-      @vitejs/plugin-react \
-      @types/react @types/react-dom \
-      tailwind autoprefixer tailwindcss-animate \
-      @tailwindcss/typography @tailwindcss/container-queries @tailwindcss/forms \
       turbo-mount stimulus-vite-helpers clsx tailwind-merge \
-      @hotwired/turbo-rails vite-plugin-ruby postcss shadcn@latest \
-      @rails/actioncable @rails/activestorage
+      @hotwired/turbo-rails \
+      @rails/actioncable @rails/activestorage  
+  CMD
+  run <<~CMD
+    npm install -D \
+      @vitejs/plugin-react eslint globals eslint-plugin-react-refresh typescript-eslint @eslint/js \
+      @types/react @types/react-dom vite-plugin-stimulus-hmr vite-plugin-full-reload \
+      tailwind autoprefixer tailwindcss-animate \
+      @tailwindcss/typography @tailwindcss/container-queries @tailwindcss/forms#{' '}
   CMD
 
   # Initialize Tailwind configs
-  run "npx tailwindcss init -p"
+  run 'npx tailwindcss init -p'
 
   # --------------------------------------------------------------------------
   # 2.3.1: Overwrite tailwind.config.js with your preferred config
   # --------------------------------------------------------------------------
-  remove_file "tailwind.config.js"
-  create_file "tailwind.config.js", <<~JS
+  remove_file 'tailwind.config.js'
+  create_file 'tailwind.config.js', <<~JS
     const defaultTheme = require('tailwindcss/defaultTheme')
 
     module.exports = {
@@ -142,8 +146,8 @@ after_bundle do
   # --------------------------------------------------------------------------
   # 2.3.2: Overwrite vite.config.js with your React + Ruby config
   # --------------------------------------------------------------------------
-  remove_file "vite.config.js"
-  create_file "vite.config.js", <<~JS
+  remove_file 'vite.config.js'
+  create_file 'vite.config.js', <<~JS
     import path from 'path'
     import { defineConfig } from 'vite'
     import RubyPlugin from 'vite-plugin-ruby'
@@ -165,7 +169,7 @@ after_bundle do
   # --------------------------------------------------------------------------
   # 2.3.3: Add TypeScript config files
   # --------------------------------------------------------------------------
-  create_file "tsconfig.json", <<~JSON
+  create_file 'tsconfig.json', <<~JSON
     {
       "files": [],
       "references": [
@@ -181,7 +185,7 @@ after_bundle do
     }
   JSON
 
-  create_file "tsconfig.app.json", <<~JSON
+  create_file 'tsconfig.app.json', <<~JSON
     {
       "compilerOptions": {
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
@@ -213,7 +217,7 @@ after_bundle do
     }
   JSON
 
-  create_file "tsconfig.node.json", <<~JSON
+  create_file 'tsconfig.node.json', <<~JSON
     {
       "compilerOptions": {
         "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
@@ -241,10 +245,10 @@ after_bundle do
   # --------------------------------------------------------------------------
   # 2.3.4: Remove default Rails assets / create Stimulus + Tailwind structure
   # --------------------------------------------------------------------------
-  remove_file "app/javascript/application.js"
-  remove_file "app/javascript/controllers/index.js"
+  remove_file 'app/javascript/application.js'
+  remove_file 'app/javascript/controllers/index.js'
 
-  create_file "app/javascript/controllers/index.js", <<~JS
+  create_file 'app/javascript/controllers/index.js', <<~JS
     import { application } from "./application";
     import { registerControllers } from "stimulus-vite-helpers";
 
@@ -253,18 +257,18 @@ after_bundle do
   JS
 
   # Remove the default Tailwind file created by the `tailwindcss:install` generator
-  remove_file "app/assets/stylesheets/application.tailwind.css", force: true
+  remove_file 'app/assets/stylesheets/application.tailwind.css', force: true
 
   # Create a dedicated folder for styles
-  run "mkdir -p app/javascript/stylesheets"
-  create_file "app/javascript/stylesheets/tailwind.css", <<~CSS
+  run 'mkdir -p app/javascript/stylesheets'
+  create_file 'app/javascript/stylesheets/tailwind.css', <<~CSS
     @import "tailwindcss/base";
     @import "tailwindcss/components";
     @import "tailwindcss/utilities";
   CSS
 
   # Application-wide CSS entrypoint
-  create_file "app/javascript/entrypoints/application.css", <<~CSS
+  create_file 'app/javascript/entrypoints/application.css', <<~CSS
     @tailwind base;
     @tailwind components;
     @tailwind utilities;
@@ -337,8 +341,8 @@ after_bundle do
   CSS
 
   # 2.3.5: Create the main JS entrypoint for Vite
-  remove_file "app/javascript/entrypoints/application.js"
-  create_file "app/javascript/entrypoints/application.js", <<~JS
+  remove_file 'app/javascript/entrypoints/application.js'
+  create_file 'app/javascript/entrypoints/application.js', <<~JS
     import "@hotwired/turbo-rails";
     import "../controllers";
     import "./turbo-mount";
@@ -350,12 +354,12 @@ after_bundle do
   # --------------------------------------------------------------------------
   # 2.4: turbo-mount installation
   # --------------------------------------------------------------------------
-  say "=== Installing turbo-mount ===", :green
-  generate "turbo_mount:install"
+  say '=== Installing turbo-mount ===', :green
+  generate 'turbo_mount:install'
 
   # We’ll create a dedicated turbo-mount entry for React components
-  remove_file "app/javascript/turbo-mount.js"
-  create_file "app/javascript/entrypoints/turbo-mount.js", <<~JS
+  remove_file 'app/javascript/turbo-mount.js'
+  create_file 'app/javascript/entrypoints/turbo-mount.js', <<~JS
     import { TurboMount } from "turbo-mount";
     import { registerComponent } from "turbo-mount/react";
 
@@ -369,8 +373,8 @@ after_bundle do
   # --------------------------------------------------------------------------
   # 2.5: Example React component + Home controller
   # --------------------------------------------------------------------------
-  run "mkdir -p app/javascript/components"
-  create_file "app/javascript/components/App.tsx", <<~TSX
+  run 'mkdir -p app/javascript/components'
+  create_file 'app/javascript/components/App.tsx', <<~TSX
     import { useState } from "react";
 
     export function App() {
@@ -398,9 +402,9 @@ after_bundle do
             </a>
           </div>
           <h1 className="text-4xl font-bold">
-            <span className="text-[#CC0000]">Rails </span> 
+            <span className="text-[#CC0000]">Rails </span>#{' '}
             + <span className="text-[#61dafb]">React </span>
-            + <span className="text-[#646cff]">Vite</span> 
+            + <span className="text-[#646cff]">Vite</span>#{' '}
           </h1>
           <div className="card flex flex-col items-center">
             <button className="mb-4 font-semibold border border-transparent hover:border-[#646cff] cursor-pointer  bg-[#1a1a1a] p-1 rounded-lg p-x-8" onClick={() => setCount((count) => count + 1)}>
@@ -419,18 +423,18 @@ after_bundle do
     }
   TSX
 
-  run "mkdir -p public/images"
+  run 'mkdir -p public/images'
   run <<~CMD
     curl -o public/images/rails.svg https://raw.githubusercontent.com/lsproule/react-rails-template/refs/heads/main/images/rails.svg
     curl -o public/images/vite.svg https://raw.githubusercontent.com/lsproule/react-rails-template/refs/heads/main/images/vite.svg
     curl -o public/images/react.svg https://raw.githubusercontent.com/lsproule/react-rails-template/refs/heads/main/images/react.svg
   CMD
 
-  generate :controller, "route", "index", "--skip-routes", "--no-helper", "--no-assets"
+  generate :controller, 'route', 'index', '--skip-routes', '--no-helper', '--no-assets'
   route "root to: 'route#index'"
 
-  remove_file "app/views/route/index.html.erb", force: true
-  create_file "app/views/route/index.html.erb", <<~ERB
+  remove_file 'app/views/route/index.html.erb', force: true
+  create_file 'app/views/route/index.html.erb', <<~ERB
     <style>
     .logo {
       height: 6em;
@@ -466,7 +470,7 @@ after_bundle do
   # --------------------------------------------------------------------------
   # 2.6: Insert needed tags in application.html.erb
   # --------------------------------------------------------------------------
-  insert_into_file "app/views/layouts/application.html.erb",
+  insert_into_file 'app/views/layouts/application.html.erb',
                    after: "<%= csrf_meta_tags %>\n" do
     <<~ERB
       <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
@@ -480,19 +484,20 @@ after_bundle do
   # --------------------------------------------------------------------------
   # 2.7: shadcn initialization
   # --------------------------------------------------------------------------
-  run "npx shadcn@latest init"
+  run 'npx shadcn@latest init'
 
   # --------------------------------------------------------------------------
   # 2.7.1: Create the UI Generators
   # --------------------------------------------------------------------------
-  say "=== Creating custom UI generators ===", :green
+  say '=== Creating custom UI generators ===', :green
 
   # Make sure directories exist
-  run "mkdir -p lib/generators/ui/component/templates"
-  run "mkdir -p lib/generators/ui/register"
+  run 'mkdir -p lib/generators/ui/component/templates'
+  run 'mkdir -p lib/generators/ui/register'
+  run 'mkdir -p lib/generators/rails/typescript'
 
   # 2.7.1.1: The `ui:component` generator
-  create_file "lib/generators/ui/component/component_generator.rb", <<~RUBY
+  create_file 'lib/generators/ui/component/component_generator.rb', <<~RUBY
     # lib/generators/ui/component/component_generator.rb
 
     module Ui
@@ -527,7 +532,7 @@ after_bundle do
   RUBY
 
   # Template for the TSX file
-  create_file "lib/generators/ui/component/templates/component.tsx.erb", <<~TSX
+  create_file 'lib/generators/ui/component/templates/component.tsx.erb', <<~TSX
     type Props = {};
 
     export function <%= class_name %>({}: Props) {
@@ -539,8 +544,10 @@ after_bundle do
     }
   TSX
 
+
+
   # 2.7.1.2: The `ui:register_component` generator
-  create_file "lib/generators/ui/register/register_generator.rb", <<~RUBY
+  create_file 'lib/generators/ui/register/register_generator.rb', <<~RUBY
     # lib/generators/ui/register/register_generator.rb
 
     module Ui
@@ -576,11 +583,268 @@ after_bundle do
     end
   RUBY
 
+  create_file 'lib/generators/rails/tmigration/tmigration.rb', <<~RUBY
+    # lib/generators/rails/migration_ts/migration_ts_generator.rb
+
+    class Rails::TmigrationGenerator < Rails::Generators::Base
+      source_root File.expand_path("templates", __dir__)
+
+      argument :migration_name, type: :string
+      argument :attributes, type: :array, default: [], banner: "field:type field:type"
+
+      def update_types
+        puts "Updating TypeScript definitions based on \#{migration_name}..."
+
+        types_file_path = Rails.root.join("app/javascript/types.d.ts")
+        # read the file, parse it, inject new columns if they don’t exist, etc.
+        # For references, do the same logic we did in the scaffold generator
+
+        interface_code = build_migration_interface_snippet
+
+        append_to_file types_file_path, interface_code
+      end
+
+      private
+
+      def build_migration_interface_snippet
+        # This is obviously simplistic. You would incorporate something
+        # like the logic from your main TS generator, or even call
+        # a shared module that does the same parsing of attributes.
+        attributes_lines = attributes.flat_map do |attr|
+          if attr.type == "references"
+            [
+              "\#{attr.name}_id: number;",
+              "\#{attr.name}?: \#{attr.name.camelize};"
+            ]
+          else
+            ["\#{attr.name}?: \#{rails_to_ts_type(attr.type)};"]
+          end
+        end
+
+        <<~TS
+          // AUTO-GENERATED by rails g migration \#{migration_name}
+          // You may need to update validations or remove ? accordingly
+          // if presence validations exist.
+          // Changes introduced by: \#{migration_name}
+          \#{attributes_lines.join("\n")}
+        TS
+      end
+
+      def rails_to_ts_type(rails_type)
+        case rails_type
+        when "integer", "float", "decimal" then "number"
+        when "boolean" then "boolean"
+        else "string"
+        end
+      end
+    end
+  RUBY
+
+  create_file 'lib/generators/rails/tmodel_validation/tmodel_validation_generator.rb', <<~RUBY
+    # lib/generators/rails/tmodel_validation/tmodel_validation_generator.rb
+
+    class Rails::TmodelValidationGenerator < Rails::Generators::NamedBase
+      source_root File.expand_path("templates", __dir__)
+
+      def update_types_for_validations
+        require File.join(Rails.root, "app/models/\#{file_path}.rb")
+
+        model_class = file_name.camelize.constantize
+
+        presence_attributes = model_class.validators
+                                         .select { |v| v.is_a?(ActiveModel::Validations::PresenceValidator) }
+                                         .flat_map(&:attributes)
+                                         .map(&:to_s)
+
+        required_belongs_tos = model_class.reflect_on_all_associations(:belongs_to)
+                                          .select { |assoc| assoc.options[:optional] == false || assoc.options[:required] == true }
+                                          .map(&:name)
+                                          .map(&:to_s)
+
+        presence_required = presence_attributes.to_set
+        required_belongs_tos.each do |assoc_name|
+          presence_required << assoc_name        # e.g. user
+          presence_required << "\#{assoc_name}_id" # e.g. user_id
+        end
+
+        types_file_path = Rails.root.join("app/javascript/types.d.ts")
+        return unless File.exist?(types_file_path)
+
+        lines = File.read(types_file_path).split("\n")
+
+
+        in_target_interface = false
+        brace_depth = 0
+
+
+        start_of_interface_regex = /^\s*(?:export\s+)?interface\s+\#{Regexp.escape(model_class.name)}\s*(\{|extends|$)/
+
+        lines.map!.with_index do |line, idx|
+          if !in_target_interface && line =~ start_of_interface_regex
+            in_target_interface = true
+            brace_depth = line.count("{")
+          
+          elsif in_target_interface
+            brace_depth += line.count("{")
+            brace_depth -= line.count("}")
+            
+            if brace_depth <= 0
+              in_target_interface = false
+            end
+          end
+
+          if in_target_interface && brace_depth > 0
+            if line =~ /^(\s*)([a-zA-Z_0-9]+)(\??):/
+              leading_spaces = $1
+              attribute_name = $2
+              question_mark  = $3 # could be "" or "?"
+
+              if presence_required.include?(attribute_name)
+                line = line.sub("\#{attribute_name}?:", "\#{attribute_name}:")
+              else
+                unless question_mark == "?"
+                  line = line.sub("\#{attribute_name}:", "\#{attribute_name}?:")
+                end
+              end
+            end
+          end
+
+          line
+        end
+
+        File.write(types_file_path, lines.join("\n"))
+      end
+    end
+  RUBY
+
+  create_file 'lib/generators/rails/tscaffold/tscaffold_generator.rb', <<~RUBY
+
+    # lib/generators/rails/typescript/typescript_generator.rb
+
+    class Rails::TscaffoldGenerator < Rails::Generators::NamedBase
+      source_root File.expand_path("templates", __dir__)
+
+      argument :attributes, type: :array, default: [], banner: "field:type field:type"
+
+      def create_or_update_types
+        types_file_path = Rails.root.join("app/javascript/types.d.ts")
+
+        interface_code = generate_interface_code
+
+        if File.exist?(types_file_path)
+          append_to_file types_file_path, interface_code
+        else
+          create_file types_file_path, interface_code
+        end
+      end
+
+      private
+
+      def generate_interface_code
+        attributes_lines = attributes.flat_map do |attr|
+          puts attr.inspect
+          if attr.type == :references
+            build_reference_lines(attr)
+          else
+            [build_attribute_line(attr)]
+          end
+        end
+
+        <<~TS
+          // AUTO-GENERATED by rails g scaffold \#{file_name}
+          interface \#{class_name} {
+            \#{attributes_lines.join("\n\t")}
+          }
+
+        TS
+      end
+
+
+      def build_attribute_line(attr)
+        "\#{attr.name}?: \#{rails_to_ts_type(attr.type)};"
+      end
+
+
+      def build_reference_lines(attr)
+        referenced_interface_name = attr.name.camelize
+        [
+          "\#{attr.name}_id: number;",
+          "\#{attr.name}?: \#{referenced_interface_name};"
+        ]
+      end
+
+
+      def rails_to_ts_type(rails_type)
+        case rails_type
+        when "integer", "float", "decimal" then "number"
+        when "boolean" then "boolean"
+        else
+          "string"
+        end
+      end
+    end
+  RUBY
+
+  create_file "config/initializers/custom_scaffold_generator.rb", <<~RUBY 
+    require "rails/railtie"
+    require "rails/generators"
+    require "rails/generators/rails/scaffold_controller/scaffold_controller_generator"
+
+    module TypescriptGenerator
+      module ScaffoldControllerGenerator
+        extend ActiveSupport::Concern
+
+        included do
+          hook_for :typescript, in: nil, default: true, type: :boolean
+        end
+      end
+    end
+
+    module ActiveModel
+      class Railtie < Rails::Railtie
+        generators do |app|
+          Rails::Generators.configure! app.config.generators
+          Rails::Generators::ScaffoldControllerGenerator.include TypescriptGenerator::ScaffoldControllerGenerator
+        end
+      end
+    end
+  RUBY
+
+  create_file 'eslint.config.js', <<~JS
+    import js from '@eslint/js'
+    import globals from 'globals'
+    import reactRefresh from 'eslint-plugin-react-refresh'
+    import tseslint from 'typescript-eslint'
+
+    export default tseslint.config(
+      { ignores: ['dist'] },
+      {
+        extends: [js.configs.recommended, ...tseslint.configs.recommended],
+        files: ['**/*.{ts,tsx}'],
+        languageOptions: {
+          ecmaVersion: 2020,
+          globals: globals.browser,
+        },
+        plugins: {
+          'react-refresh': reactRefresh,
+        },
+        rules: {
+          'react-refresh/only-export-components': [
+            'warn',
+            { allowConstantExport: true },
+          ],
+          'no-restricted-exports': ["error", { "restrictDefaultExports": { "direct": true } }],
+          "@typescript-eslint/no-empty-object-type": 'warn',
+          'no-empty-pattern': 'warn'
+        },
+      },
+    )
+  JS
+
   # --------------------------------------------------------------------------
   # 2.8: Done!
   # --------------------------------------------------------------------------
-  say "=== Setup Complete ===", :green
-  say "You can now run: bin/rails server", :yellow
-  say "Visit http://localhost:3000 to see the example turbo-mounted React component.", :yellow
+  say '=== Setup Complete ===', :green
+  say 'You can now run: bin/rails server', :yellow
+  say 'Visit http://localhost:3000 to see the example turbo-mounted React component.', :yellow
 end
-
